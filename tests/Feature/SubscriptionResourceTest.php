@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Am2tec\PaymentApiSdk\Tests\Feature;
 
 use Am2tec\PaymentApiSdk\Facades\PaymentApi;
+use Am2tec\PaymentApiSdk\Responses\ExtensionRequestResponse;
 use Am2tec\PaymentApiSdk\Responses\SubscriptionResponse;
 use Am2tec\PaymentApiSdk\Tests\TestCase;
 use Illuminate\Support\Facades\Http;
@@ -67,6 +68,39 @@ class SubscriptionResourceTest extends TestCase
         $this->assertInstanceOf(SubscriptionResponse::class, $sub);
         $this->assertSame('sub_uuid_abc', $sub->id);
         $this->assertSame('sub_asaas_xyz', $sub->providerSubscriptionId);
+    }
+
+    public function test_request_extension_returns_typed_response(): void
+    {
+        Http::fake([
+            'https://api.payment.test/api/v1/subscriptions/sub_uuid_abc/extension-request' => Http::response([
+                'id' => 'ext_req_uuid_001',
+                'status' => 'pending',
+                'message' => 'Pedido de extensão enviado com sucesso.',
+            ], 201),
+        ]);
+
+        $result = PaymentApi::subscription()->requestExtension('sub_uuid_abc', 'Preciso de mais tempo.');
+
+        $this->assertInstanceOf(ExtensionRequestResponse::class, $result);
+        $this->assertSame('ext_req_uuid_001', $result->id);
+        $this->assertSame('pending', $result->status);
+    }
+
+    public function test_request_extension_without_reason(): void
+    {
+        Http::fake([
+            'https://api.payment.test/api/v1/subscriptions/sub_uuid_abc/extension-request' => Http::response([
+                'id' => 'ext_req_uuid_002',
+                'status' => 'pending',
+                'message' => 'Pedido de extensão enviado com sucesso.',
+            ], 201),
+        ]);
+
+        $result = PaymentApi::subscription()->requestExtension('sub_uuid_abc');
+
+        $this->assertInstanceOf(ExtensionRequestResponse::class, $result);
+        $this->assertSame('pending', $result->status);
     }
 
     public function test_list_returns_array_of_typed_responses(): void

@@ -13,6 +13,9 @@ readonly class SubscriptionResponse
         public ?string $referenceId,
         public ?string $startedAt,
         public ?string $cancelledAt,
+        public ?string $trialEndsAt,
+        public ?string $pausedAt,
+        public ?string $nextBillingDate,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -25,6 +28,9 @@ readonly class SubscriptionResponse
             referenceId: $data['reference_id'] ?? null,
             startedAt: $data['started_at'] ?? null,
             cancelledAt: $data['cancelled_at'] ?? null,
+            trialEndsAt: $data['trial_ends_at'] ?? null,
+            pausedAt: $data['paused_at'] ?? null,
+            nextBillingDate: $data['next_billing_date'] ?? null,
         );
     }
 }

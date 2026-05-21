@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Am2tec\PaymentApiSdk\Resources;
 
+use Am2tec\PaymentApiSdk\Responses\ExtensionRequestResponse;
 use Am2tec\PaymentApiSdk\Responses\SubscriptionResponse;
 use Illuminate\Http\Client\PendingRequest;
 
@@ -36,6 +37,16 @@ class SubscriptionResource
         $response->throw();
 
         return SubscriptionResponse::fromArray($response->json('data'));
+    }
+
+    public function requestExtension(string $id, ?string $reason = null): ExtensionRequestResponse
+    {
+        $response = $this->client->post("/api/v1/subscriptions/{$id}/extension-request", array_filter([
+            'reason' => $reason,
+        ]));
+        $response->throw();
+
+        return ExtensionRequestResponse::fromArray($response->json());
     }
 
     /**

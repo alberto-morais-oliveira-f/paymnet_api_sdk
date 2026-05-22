@@ -92,6 +92,17 @@ class ChargeResourceTest extends TestCase
         $this->assertSame('charge_uuid_456', $charges[1]->id);
     }
 
+    public function test_capture_returns_typed_response(): void
+    {
+        $captured = array_merge($this->chargePayload['data'], ['status' => 'CONFIRMED']);
+        Http::fake(['https://api.payment.test/api/v1/charges/charge_uuid_123/capture' => Http::response(['data' => $captured], 200)]);
+
+        $charge = PaymentApi::charge()->capture('charge_uuid_123');
+
+        $this->assertInstanceOf(ChargeResponse::class, $charge);
+        $this->assertSame('CONFIRMED', $charge->status);
+    }
+
     public function test_create_throws_on_http_error(): void
     {
         Http::fake(['*' => Http::response(['message' => 'Unprocessable'], 422)]);

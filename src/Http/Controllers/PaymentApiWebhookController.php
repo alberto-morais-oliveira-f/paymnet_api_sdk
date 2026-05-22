@@ -15,11 +15,12 @@ abstract class PaymentApiWebhookController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         $event = PaymentApi::webhook()->validate($request);
+        $deliveryId = $request->header('X-Payment-Delivery-Id');
 
-        $this->handle($event);
+        $this->handle($event, $deliveryId);
 
         return response()->json(['ok' => true]);
     }
 
-    abstract protected function handle(WebhookEvent $event): void;
+    abstract protected function handle(WebhookEvent $event, ?string $deliveryId = null): void;
 }

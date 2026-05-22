@@ -49,6 +49,14 @@ class ChargeResource
         return ChargeResponse::fromArray($response->json('data'));
     }
 
+    public function capture(string $id): ChargeResponse
+    {
+        $response = $this->client->post("/api/v1/charges/{$id}/capture");
+        $response->throw();
+
+        return ChargeResponse::fromArray($response->json('data'));
+    }
+
     /**
      * @param  array<string, mixed>  $filters
      * @return ChargeResponse[]

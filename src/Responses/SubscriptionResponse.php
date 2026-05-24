@@ -9,6 +9,7 @@ readonly class SubscriptionResponse
     public function __construct(
         public string $id,
         public string $status,
+        public ?string $providerAlias,
         public ?string $providerSubscriptionId,
         public ?string $referenceId,
         public ?string $startedAt,
@@ -24,6 +25,7 @@ readonly class SubscriptionResponse
         return new self(
             id: $data['id'],
             status: $data['status'],
+            providerAlias: $data['provider_alias'] ?? null,
             providerSubscriptionId: $data['provider_subscription_id'] ?? null,
             referenceId: $data['reference_id'] ?? null,
             startedAt: $data['started_at'] ?? null,

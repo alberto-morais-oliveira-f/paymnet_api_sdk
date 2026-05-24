@@ -9,6 +9,7 @@ readonly class ChargeResponse
     public function __construct(
         public string $id,
         public string $status,
+        public ?string $providerAlias,
         public ?string $checkoutUrl,
         public ?string $pixCode,
         public ?int $amountCents,
@@ -20,6 +21,7 @@ readonly class ChargeResponse
         return new self(
             id: $data['id'],
             status: $data['status'],
+            providerAlias: $data['provider_alias'] ?? null,
             checkoutUrl: $data['checkout_url'] ?? null,
             pixCode: $data['pix_code'] ?? null,
             amountCents: isset($data['amount']) ? (int) $data['amount'] : null,

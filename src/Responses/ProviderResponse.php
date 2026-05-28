@@ -17,7 +17,7 @@ readonly class ProviderResponse
     public static function fromArray(array $data): self
     {
         return new self(
-            id: $data['id'],
+            id: (string) $data['id'],
             provider: $data['provider'],
             active: (bool) $data['active'],
             createdAt: $data['created_at'],

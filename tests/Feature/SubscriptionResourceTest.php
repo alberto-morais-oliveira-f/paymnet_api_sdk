@@ -17,6 +17,7 @@ class SubscriptionResourceTest extends TestCase
             'id'                       => 'sub_uuid_abc',
             'status'                   => 'pending',
             'provider_subscription_id' => 'sub_asaas_xyz',
+            'checkout_url'             => 'https://www.mercadopago.com/init/sub_uuid_abc',
             'reference_id'             => 'sub_1_42',
             'started_at'               => null,
             'cancelled_at'             => null,
@@ -38,6 +39,7 @@ class SubscriptionResourceTest extends TestCase
         $this->assertSame('sub_uuid_abc', $sub->id);
         $this->assertSame('pending', $sub->status);
         $this->assertSame('sub_asaas_xyz', $sub->providerSubscriptionId);
+        $this->assertSame('https://www.mercadopago.com/init/sub_uuid_abc', $sub->checkoutUrl);
         $this->assertSame('sub_1_42', $sub->referenceId);
     }
 

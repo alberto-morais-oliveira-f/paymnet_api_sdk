@@ -14,6 +14,7 @@ readonly class WebhookEvent
         public string $provider,
         public ?string $chargeId,
         public array $metadata,
+        public ?string $paymentTypeId = null,
     ) {}
 
     /** @param array<string, mixed> $payload */
@@ -27,6 +28,7 @@ readonly class WebhookEvent
             provider: $payload['provider'],
             chargeId: $payload['charge_id'] ?? null,
             metadata: $payload['metadata'] ?? [],
+            paymentTypeId: $payload['payment_type_id'] ?? null,
         );
     }
 

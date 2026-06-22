@@ -14,12 +14,13 @@ class ProviderResource
     /**
      * @param array<string, mixed> $credentials
      */
-    public function store(string $provider, array $credentials): ProviderResponse
+    public function store(string $provider, array $credentials, ?string $alias = null): ProviderResponse
     {
-        $response = $this->client->post('/api/v1/providers', [
+        $response = $this->client->post('/api/v1/providers', array_filter([
             'provider'    => $provider,
+            'alias'       => $alias,
             'credentials' => $credentials,
-        ]);
+        ], fn ($v) => $v !== null));
         $response->throw();
 
         return ProviderResponse::fromArray($response->json('data'));

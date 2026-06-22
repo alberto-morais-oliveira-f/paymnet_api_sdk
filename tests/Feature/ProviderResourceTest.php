@@ -32,6 +32,18 @@ class ProviderResourceTest extends TestCase
         $this->assertTrue($provider->active);
     }
 
+    public function test_store_sends_alias_and_exposes_it(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/providers' => Http::response([
+            'data' => array_merge($this->providerPayload['data'], ['provider' => 'mercadopago', 'alias' => 'academia-x']),
+        ], 201)]);
+
+        $provider = PaymentApi::provider()->store('mercadopago', ['access_token' => 'gym_token'], 'academia-x');
+
+        Http::assertSent(fn ($request) => $request['alias'] === 'academia-x' && $request['provider'] === 'mercadopago');
+        $this->assertSame('academia-x', $provider->alias);
+    }
+
     public function test_update_returns_typed_response(): void
     {
         Http::fake(['https://api.payment.test/api/v1/providers/provider_uuid_001' => Http::response($this->providerPayload, 200)]);

@@ -11,6 +11,7 @@ readonly class ProviderResponse
         public string $provider,
         public bool $active,
         public string $createdAt,
+        public ?string $alias = null,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -21,6 +22,7 @@ readonly class ProviderResponse
             provider: $data['provider'],
             active: (bool) $data['active'],
             createdAt: $data['created_at'],
+            alias: $data['alias'] ?? null,
         );
     }
 }

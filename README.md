@@ -65,6 +65,51 @@ PaymentApi::charge()->refund('uuid', ['amount' => 9900, 'reason' => 'Cancelament
 $charges = PaymentApi::charge()->list(['status' => 'confirmed']);
 ```
 
+### Cartão transparente (checkout transparente)
+
+O cartão é criptografado no browser pelo SDK do gateway (PAN nunca chega ao servidor).
+Envie o hash/token em `billing_type=CARD`:
+
+```php
+// Cobrança com cartão criptografado (hash do SDK) + salvar para reuso
+$charge = PaymentApi::charge()->create([
+    'provider'       => 'c6bank',
+    'amount'         => 5000,
+    'reference_id'   => 'pedido_card',
+    'callback_url'   => 'https://app.com/webhooks/payment',
+    'due_date'       => '2026-06-23',
+    'billing_type'   => 'CARD',
+    'encrypted_card' => $cardHashDoSdk, // OU 'card_token' => 'tok_salvo'
+    'save_card'      => true,           // tokeniza p/ 1-clique / recorrência
+    'authenticate'   => 'NOT_REQUIRED', // NOT_REQUIRED | OPTIONAL | REQUIRED
+    'card_type'      => 'CREDIT',       // CREDIT | DEBIT
+    'installments'   => 1,
+    'customer'       => ['name' => 'João', 'email' => 'joao@email.com', 'cpf' => '123.456.789-00'],
+]);
+
+echo $charge->status;       // confirmed | failed | authorized
+echo $charge->cardTokenId;  // uuid do cartão salvo (se save_card=true)
+```
+
+Para o checkout transparente do C6, busque a chave pública do SDK:
+
+```php
+$session = PaymentApi::provider()->c6PublicKey(); // ['public_key' => ..., 'session_key' => ..., 'expires_in' => ...]
+```
+
+### Cartões salvos (tokenizados)
+
+```php
+// Listar cartões salvos do tenant (nunca expõe o token cru)
+$cards = PaymentApi::cardToken()->list();
+foreach ($cards as $card) {
+    echo "{$card->brand} •••• {$card->last4} ({$card->id})";
+}
+
+// Remover
+PaymentApi::cardToken()->delete('ct_uuid');
+```
+
 ### Assinaturas recorrentes
 
 ```php
@@ -93,6 +138,18 @@ echo $sub->status;         // pending | active | trial | paused | cancelled
 echo $sub->trialEndsAt;    // ISO8601 ou null
 echo $sub->nextBillingDate;// YYYY-MM-DD ou null
 
+// Assinatura cobrada por cartão salvo (gateways sem assinatura nativa, ex.: C6 —
+// a recorrência é cobrada localmente reutilizando o cartão tokenizado)
+$sub = PaymentApi::subscription()->create([
+    'provider'      => 'c6bank',
+    'amount_cents'  => 9900,
+    'interval'      => 'monthly',
+    'reference_id'  => 'aluno_789',
+    'callback_url'  => 'https://app.com/webhooks/payment',
+    'card_token_id' => $charge->cardTokenId, // OU 'card_token' => 'tok'
+    'customer'      => ['name' => 'Maria', 'email' => 'maria@email.com', 'cpf' => '987.654.321-00'],
+]);
+
 // Buscar / cancelar / listar
 $sub  = PaymentApi::subscription()->find('uuid');
 $sub  = PaymentApi::subscription()->cancel('uuid');
@@ -120,6 +177,10 @@ PaymentApi::provider()->store('asaas', [
 
 // Listar providers ativos
 $providers = PaymentApi::provider()->list();
+
+// Capabilities do gateway (renderizar o checkout correto no front)
+$caps = PaymentApi::provider()->capabilities('c6bank');
+// ['pix'=>true, 'transparent_card'=>true, 'tokenization_js'=>'c6', 'native_subscriptions'=>false, ...]
 ```
 
 ### Webhooks
@@ -169,6 +230,30 @@ $event = PaymentApi::webhook()->validate(
 ---
 
 ## Respostas
+
+### `ChargeResponse`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | `string` | UUID da cobrança |
+| `status` | `string` | `pending` \| `authorized` \| `confirmed` \| `failed` |
+| `providerAlias` | `?string` | Conta do gateway (multi-conta) |
+| `checkoutUrl` | `?string` | Link de pagamento |
+| `pixCode` | `?string` | Copia-e-cola PIX |
+| `amountCents` | `?int` | Valor em centavos |
+| `cardTokenId` | `?string` | UUID do cartão salvo (se `save_card=true`) |
+
+### `CardTokenResponse`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | `string` | UUID do cartão salvo |
+| `provider` | `string` | Gateway de origem |
+| `brand` | `?string` | Bandeira (VISA, ...) |
+| `last4` | `?string` | Últimos 4 dígitos |
+| `expMonth` / `expYear` | `?string` | Validade |
+| `isDefault` | `bool` | Cartão padrão |
+| `lastUsedAt` | `?string` | ISO8601 |
 
 ### `SubscriptionResponse`
 

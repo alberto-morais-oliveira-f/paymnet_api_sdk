@@ -58,4 +58,35 @@ class ProviderResource
             $response->json('data') ?? [],
         );
     }
+
+    /**
+     * Provider-neutral capability flags (pix, boleto, transparent_card,
+     * native_subscriptions, tokenization_js, ...) used to render the right
+     * checkout for a gateway.
+     *
+     * @return array<string, mixed>
+     */
+    public function capabilities(string $provider): array
+    {
+        $response = $this->client->get("/api/v1/providers/{$provider}/capabilities");
+        $response->throw();
+
+        return $response->json('capabilities') ?? [];
+    }
+
+    /**
+     * C6 transparent-checkout SDK session: the public key the browser uses to
+     * encrypt the card before it reaches the API.
+     *
+     * @return array<string, mixed>
+     */
+    public function c6PublicKey(?string $alias = null): array
+    {
+        $response = $this->client->get('/api/v1/providers/c6/public-key', array_filter([
+            'provider_alias' => $alias,
+        ], fn ($v) => $v !== null));
+        $response->throw();
+
+        return $response->json() ?? [];
+    }
 }

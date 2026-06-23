@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Am2tec\PaymentApiSdk\Facades;
 
+use Am2tec\PaymentApiSdk\Resources\CardTokenResource;
 use Am2tec\PaymentApiSdk\Resources\ChargeResource;
 use Am2tec\PaymentApiSdk\Resources\PlanResource;
 use Am2tec\PaymentApiSdk\Resources\ProviderResource;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static PlanResource plan()
  * @method static ProviderResource provider()
  * @method static SubscriptionResource subscription()
+ * @method static CardTokenResource cardToken()
  * @method static WebhookValidator webhook()
  *
  * @see \Am2tec\PaymentApiSdk\PaymentApi

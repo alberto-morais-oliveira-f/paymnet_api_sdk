@@ -87,4 +87,38 @@ class ProviderResourceTest extends TestCase
 
         PaymentApi::provider()->store('stripe', ['api_key' => 'invalid']);
     }
+
+    public function test_capabilities_returns_flags_array(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/providers/c6bank/capabilities' => Http::response([
+            'provider'     => 'c6bank',
+            'capabilities' => [
+                'pix'                  => true,
+                'transparent_card'     => true,
+                'tokenization_js'      => 'c6',
+                'native_subscriptions' => false,
+            ],
+        ], 200)]);
+
+        $caps = PaymentApi::provider()->capabilities('c6bank');
+
+        $this->assertTrue($caps['transparent_card']);
+        $this->assertSame('c6', $caps['tokenization_js']);
+        $this->assertFalse($caps['native_subscriptions']);
+    }
+
+    public function test_c6_public_key_returns_session(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/providers/c6/public-key*' => Http::response([
+            'public_key'  => '-----BEGIN PUBLIC KEY-----...',
+            'session_key' => 'sess_123',
+            'expires_in'  => '600',
+        ], 200)]);
+
+        $session = PaymentApi::provider()->c6PublicKey('academia-x');
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'provider_alias=academia-x'));
+        $this->assertSame('sess_123', $session['session_key']);
+        $this->assertArrayHasKey('public_key', $session);
+    }
 }

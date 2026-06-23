@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Am2tec\PaymentApiSdk;
 
+use Am2tec\PaymentApiSdk\Resources\CardTokenResource;
 use Am2tec\PaymentApiSdk\Resources\ChargeResource;
 use Am2tec\PaymentApiSdk\Resources\PlanResource;
 use Am2tec\PaymentApiSdk\Resources\ProviderResource;
@@ -41,6 +42,11 @@ class PaymentApi
     public function provider(): ProviderResource
     {
         return new ProviderResource($this->client());
+    }
+
+    public function cardToken(): CardTokenResource
+    {
+        return new CardTokenResource($this->client());
     }
 
     public function webhook(): WebhookValidator

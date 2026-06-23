@@ -42,6 +42,37 @@ class ChargeResourceTest extends TestCase
         $this->assertSame(15000, $charge->amountCents);
     }
 
+    public function test_create_card_charge_exposes_saved_card_token(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/charges' => Http::response([
+            'data' => [
+                'id'            => 'charge_card_1',
+                'status'        => 'confirmed',
+                'amount'        => 5000,
+                'card_token_id' => 'ct_uuid_001',
+            ],
+        ], 201)]);
+
+        $charge = PaymentApi::charge()->create([
+            'provider'      => 'c6bank',
+            'amount'        => 5000,
+            'reference_id'  => 'order_card',
+            'callback_url'  => 'https://app.test/cb',
+            'due_date'      => '2026-06-23',
+            'billing_type'  => 'CARD',
+            'encrypted_card' => 'CARD_HASH_ABC',
+            'save_card'     => true,
+            'customer'      => ['name' => 'John', 'email' => 'john@test.com', 'cpf' => '123.456.789-00'],
+        ]);
+
+        $this->assertSame('confirmed', $charge->status);
+        $this->assertSame('ct_uuid_001', $charge->cardTokenId);
+
+        Http::assertSent(fn ($req) => $req['billing_type'] === 'CARD'
+            && $req['encrypted_card'] === 'CARD_HASH_ABC'
+            && $req['save_card'] === true);
+    }
+
     public function test_create_sends_bearer_token(): void
     {
         Http::fake(['*' => Http::response($this->chargePayload, 201)]);

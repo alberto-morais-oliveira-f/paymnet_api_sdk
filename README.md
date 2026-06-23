@@ -39,7 +39,7 @@ $charge = PaymentApi::charge()->create([
     'reference_id'  => 'pedido_123',
     'callback_url'  => 'https://app.com/webhooks/payment',
     'amount'        => 9900, // centavos
-    'billing_type'  => 'PIX', // ou CREDIT_CARD, BOLETO
+    'billing_type'  => 'PIX', // depende do provider — ver nota abaixo
     'customer'      => [
         'name'  => 'João Silva',
         'email' => 'joao@email.com',
@@ -64,6 +64,12 @@ PaymentApi::charge()->refund('uuid', ['amount' => 9900, 'reason' => 'Cancelament
 // Listar
 $charges = PaymentApi::charge()->list(['status' => 'confirmed']);
 ```
+
+> **`billing_type` varia por provider.** Use `provider()->capabilities($provider)`
+> para descobrir o que cada gateway aceita:
+> - **PIX** / **BOLETO**: Asaas, MercadoPago, Iugu, C6 Bank
+> - **CREDIT_CARD**: Asaas, MercadoPago, Iugu, Stripe (cartão transparente via `tokenization_js` do gateway)
+> - **CARD**: C6 Bank (checkout transparente — ver seção abaixo)
 
 ### Cartão transparente (checkout transparente)
 

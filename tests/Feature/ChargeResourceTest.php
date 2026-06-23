@@ -73,6 +73,39 @@ class ChargeResourceTest extends TestCase
             && $req['save_card'] === true);
     }
 
+    public function test_create_with_split_exposes_split_fields(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/charges' => Http::response([
+            'data' => [
+                'id'                 => 'charge_split_1',
+                'status'             => 'pending',
+                'amount'             => 5000,
+                'split'              => ['recipient_account_id' => 'seller_1', 'fee_cents' => 200],
+                'platform_fee_cents' => 200,
+                'split_status'       => 'pending',
+            ],
+        ], 201)]);
+
+        $charge = PaymentApi::charge()->create([
+            'provider'          => 'mercadopago',
+            'amount'            => 5000,
+            'reference_id'      => 'order_split',
+            'callback_url'      => 'https://app.test/cb',
+            'due_date'          => '2026-07-01',
+            'billing_type'      => 'CREDIT_CARD',
+            'card_token'        => 'tok_abc',
+            'payment_method_id' => 'master',
+            'split'             => ['recipient_account_id' => 'seller_1', 'fee_cents' => 200],
+            'customer'          => ['name' => 'John', 'email' => 'john@test.com', 'cpf' => '123.456.789-00'],
+        ]);
+
+        $this->assertSame(200, $charge->platformFeeCents);
+        $this->assertSame('pending', $charge->splitStatus);
+        $this->assertSame('seller_1', $charge->split['recipient_account_id']);
+
+        Http::assertSent(fn ($req) => $req['split']['fee_cents'] === 200 && $req['payment_method_id'] === 'master');
+    }
+
     public function test_create_sends_bearer_token(): void
     {
         Http::fake(['*' => Http::response($this->chargePayload, 201)]);

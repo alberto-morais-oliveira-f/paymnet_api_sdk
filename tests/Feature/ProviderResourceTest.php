@@ -107,6 +107,39 @@ class ProviderResourceTest extends TestCase
         $this->assertFalse($caps['native_subscriptions']);
     }
 
+    public function test_mercadopago_authorize_url_returns_url(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/providers/mercadopago/oauth/authorize-url' => Http::response([
+            'url' => 'https://auth.mercadopago.com/authorization?client_id=1',
+        ], 200)]);
+
+        $url = PaymentApi::provider()->mercadoPagoAuthorizeUrl('academia-x', 'https://app.test/return');
+
+        $this->assertStringContainsString('auth.mercadopago.com', $url);
+        Http::assertSent(fn ($req) => $req['seller_ref'] === 'academia-x' && $req['return_url'] === 'https://app.test/return');
+    }
+
+    public function test_mercadopago_seller_status_returns_public_key(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/providers/mercadopago/seller/academia-x/status' => Http::response([
+            'connected'  => true,
+            'mp_user_id' => '123',
+            'public_key' => 'APP_USR-public-key',
+        ], 200)]);
+
+        $status = PaymentApi::provider()->mercadoPagoSellerStatus('academia-x');
+
+        $this->assertTrue($status['connected']);
+        $this->assertSame('APP_USR-public-key', $status['public_key']);
+    }
+
+    public function test_mercadopago_disconnect_returns_true(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/providers/mercadopago/seller/academia-x' => Http::response(null, 200)]);
+
+        $this->assertTrue(PaymentApi::provider()->mercadoPagoDisconnect('academia-x'));
+    }
+
     public function test_c6_public_key_returns_session(): void
     {
         Http::fake(['https://api.payment.test/api/v1/providers/c6/public-key*' => Http::response([

@@ -89,4 +89,45 @@ class ProviderResource
 
         return $response->json() ?? [];
     }
+
+    /**
+     * MercadoPago marketplace onboarding: URL de consentimento OAuth para o
+     * vendedor (seller) conectar a conta. `returnUrl` = tela do tenant para onde
+     * o callback redireciona após conectar.
+     */
+    public function mercadoPagoAuthorizeUrl(string $sellerRef, ?string $returnUrl = null): string
+    {
+        $response = $this->client->post('/api/v1/providers/mercadopago/oauth/authorize-url', array_filter([
+            'seller_ref' => $sellerRef,
+            'return_url' => $returnUrl,
+        ], fn ($v) => $v !== null));
+        $response->throw();
+
+        return $response->json('url');
+    }
+
+    /**
+     * Status de conexão do vendedor MercadoPago. Inclui `public_key` (usada no
+     * browser para inicializar o MercadoPago.js / checkout transparente).
+     *
+     * @return array{connected: bool, mp_user_id: ?string, public_key: ?string}
+     */
+    public function mercadoPagoSellerStatus(string $sellerRef): array
+    {
+        $response = $this->client->get("/api/v1/providers/mercadopago/seller/{$sellerRef}/status");
+        $response->throw();
+
+        return $response->json() ?? [];
+    }
+
+    /**
+     * Desconecta o vendedor MercadoPago (remove tokens OAuth).
+     */
+    public function mercadoPagoDisconnect(string $sellerRef): bool
+    {
+        $response = $this->client->delete("/api/v1/providers/mercadopago/seller/{$sellerRef}");
+        $response->throw();
+
+        return true;
+    }
 }

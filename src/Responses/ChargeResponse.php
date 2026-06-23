@@ -13,6 +13,7 @@ readonly class ChargeResponse
         public ?string $checkoutUrl,
         public ?string $pixCode,
         public ?int $amountCents,
+        public ?string $cardTokenId = null,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -25,6 +26,7 @@ readonly class ChargeResponse
             checkoutUrl: $data['checkout_url'] ?? null,
             pixCode: $data['pix_code'] ?? null,
             amountCents: isset($data['amount']) ? (int) $data['amount'] : null,
+            cardTokenId: $data['card_token_id'] ?? null,
         );
     }
 }

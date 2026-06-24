@@ -18,6 +18,8 @@ readonly class SubscriptionResponse
         public ?string $trialEndsAt,
         public ?string $pausedAt,
         public ?string $nextBillingDate,
+        public ?string $pixAuthorizationCode = null,
+        public ?string $authorizationLocation = null,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -35,6 +37,8 @@ readonly class SubscriptionResponse
             trialEndsAt: $data['trial_ends_at'] ?? null,
             pausedAt: $data['paused_at'] ?? null,
             nextBillingDate: $data['next_billing_date'] ?? null,
+            pixAuthorizationCode: $data['pix_authorization_code'] ?? null,
+            authorizationLocation: $data['authorization_location'] ?? null,
         );
     }
 }

@@ -43,6 +43,21 @@ class SubscriptionResourceTest extends TestCase
         $this->assertSame('sub_1_42', $sub->referenceId);
     }
 
+    public function test_from_array_maps_pix_authorization_fields(): void
+    {
+        $response = SubscriptionResponse::fromArray([
+            'id'                      => 'sub_1',
+            'status'                  => 'pending',
+            'pix_authorization_code'  => '00020126AUTORIZE.br.gov.bcb.pix',
+            'authorization_location'  => 'https://pix.c6/loc/123',
+            'next_billing_date'       => '2026-07-23',
+        ]);
+
+        $this->assertSame('00020126AUTORIZE.br.gov.bcb.pix', $response->pixAuthorizationCode);
+        $this->assertSame('https://pix.c6/loc/123', $response->authorizationLocation);
+        $this->assertSame('2026-07-23', $response->nextBillingDate);
+    }
+
     public function test_cancel_returns_cancelled_response(): void
     {
         $cancelledPayload = [

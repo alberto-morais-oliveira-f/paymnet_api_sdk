@@ -120,6 +120,34 @@ class SubscriptionResourceTest extends TestCase
         $this->assertSame('pending', $result->status);
     }
 
+    public function test_change_payment_method_hits_the_patch_endpoint(): void
+    {
+        $updatedPayload = [
+            'data' => array_merge($this->subscriptionPayload['data'], [
+                'status'                   => 'active',
+                'provider_subscription_id' => null,
+            ]),
+        ];
+
+        Http::fake([
+            'https://api.payment.test/api/v1/subscriptions/sub_uuid_abc/payment-method' => Http::response($updatedPayload, 200),
+        ]);
+
+        $sub = PaymentApi::subscription()->changePaymentMethod('sub_uuid_abc', [
+            'card_token_id' => 'card_tok_new_1',
+        ]);
+
+        $this->assertInstanceOf(SubscriptionResponse::class, $sub);
+        $this->assertSame('sub_uuid_abc', $sub->id);
+        $this->assertSame('active', $sub->status);
+
+        Http::assertSent(function ($request) {
+            return $request->method() === 'PATCH'
+                && $request->url() === 'https://api.payment.test/api/v1/subscriptions/sub_uuid_abc/payment-method'
+                && $request['card_token_id'] === 'card_tok_new_1';
+        });
+    }
+
     public function test_list_returns_array_of_typed_responses(): void
     {
         Http::fake([

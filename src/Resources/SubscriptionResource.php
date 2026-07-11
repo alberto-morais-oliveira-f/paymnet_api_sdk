@@ -39,6 +39,19 @@ class SubscriptionResource
         return SubscriptionResponse::fromArray($response->json('data'));
     }
 
+    /**
+     * Troca o cartão de uma assinatura recorrente já existente.
+     *
+     * @param array<string, mixed> $data {card_token?, card_token_id?, encrypted_card?, payment_method_id?}
+     */
+    public function changePaymentMethod(string $id, array $data): SubscriptionResponse
+    {
+        $response = $this->client->patch("/api/v1/subscriptions/{$id}/payment-method", $data);
+        $response->throw();
+
+        return SubscriptionResponse::fromArray($response->json('data'));
+    }
+
     public function requestExtension(string $id, ?string $reason = null): ExtensionRequestResponse
     {
         $response = $this->client->post("/api/v1/subscriptions/{$id}/extension-request", array_filter([

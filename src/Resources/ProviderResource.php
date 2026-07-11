@@ -91,6 +91,24 @@ class ProviderResource
     }
 
     /**
+     * MercadoPago.js bootstrap: the public key the browser uses to tokenize
+     * the card before it reaches the API (transparent checkout). Used by
+     * public flows (e.g. the signup landing) where the caller authenticates
+     * as the merchant itself and there is no tenant-provisioned seller yet.
+     *
+     * @return array{public_key: string}
+     */
+    public function mercadoPagoPublicKey(?string $alias = null): array
+    {
+        $response = $this->client->get('/api/v1/providers/mercadopago/public-key', array_filter([
+            'provider_alias' => $alias,
+        ], fn ($v) => $v !== null));
+        $response->throw();
+
+        return $response->json() ?? [];
+    }
+
+    /**
      * MercadoPago marketplace onboarding: URL de consentimento OAuth para o
      * vendedor (seller) conectar a conta. `returnUrl` = tela do tenant para onde
      * o callback redireciona após conectar.

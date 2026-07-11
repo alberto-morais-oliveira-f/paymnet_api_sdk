@@ -154,4 +154,39 @@ class ProviderResourceTest extends TestCase
         $this->assertSame('sess_123', $session['session_key']);
         $this->assertArrayHasKey('public_key', $session);
     }
+
+    public function test_mercado_pago_public_key_returns_key(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/providers/mercadopago/public-key*' => Http::response([
+            'public_key' => 'APP_USR-public-key',
+        ], 200)]);
+
+        $result = PaymentApi::provider()->mercadoPagoPublicKey();
+
+        $this->assertSame('APP_USR-public-key', $result['public_key']);
+        $this->assertArrayNotHasKey('access_token', $result);
+    }
+
+    public function test_mercado_pago_public_key_sends_alias(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/providers/mercadopago/public-key*' => Http::response([
+            'public_key' => 'gym_public_key',
+        ], 200)]);
+
+        $result = PaymentApi::provider()->mercadoPagoPublicKey('academia-x');
+
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'provider_alias=academia-x'));
+        $this->assertSame('gym_public_key', $result['public_key']);
+    }
+
+    public function test_mercado_pago_public_key_throws_on_http_error(): void
+    {
+        Http::fake(['https://api.payment.test/api/v1/providers/mercadopago/public-key*' => Http::response([
+            'message' => 'MercadoPago public key not configured for this provider.',
+        ], 422)]);
+
+        $this->expectException(\Illuminate\Http\Client\RequestException::class);
+
+        PaymentApi::provider()->mercadoPagoPublicKey();
+    }
 }

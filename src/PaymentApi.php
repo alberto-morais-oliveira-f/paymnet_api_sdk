@@ -10,8 +10,11 @@ use Am2tec\PaymentApiSdk\Resources\PlanResource;
 use Am2tec\PaymentApiSdk\Resources\ProviderResource;
 use Am2tec\PaymentApiSdk\Resources\SubscriptionResource;
 use Am2tec\PaymentApiSdk\Webhook\WebhookValidator;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Throwable;
 
 class PaymentApi
 {
@@ -62,7 +65,17 @@ class PaymentApi
             ->timeout($this->timeout);
 
         if ($this->retryTimes > 0) {
-            $pending = $pending->retry($this->retryTimes, $this->retryDelayMs);
+            // Só reenvia em falhas transientes: perda de conexão / timeout ou um
+            // 5xx da própria payment_api. Erros 4xx (validação, ou o gateway
+            // rejeitando o payload — ex.: MP "payer and collector must be real
+            // or test users") são determinísticos: repetir só multiplica a
+            // latência (3× timeout) sem chance de sucesso, e mascara o erro real.
+            $pending = $pending->retry(
+                $this->retryTimes,
+                $this->retryDelayMs,
+                fn (Throwable $e): bool => $e instanceof ConnectionException
+                    || ($e instanceof RequestException && (bool) $e->response->serverError()),
+            );
         }
 
         return $pending;

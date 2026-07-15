@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "taskflow": {
+      "command": "php",
+      "args": [
+        "/var/www/html/taskflow/artisan",
+        "mcp:start",
+        "taskflow"
+      ]
+    }
+  }
+}

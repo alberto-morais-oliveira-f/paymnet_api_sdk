@@ -1,6 +1,5 @@
 {
     "name": "am2tec/payment-api-sdk",
-    "version": "1.4.2",
     "description": "Laravel SDK for the am2tec payment_api centralized payment gateway.",
     "type": "library",
     "license": "MIT",
